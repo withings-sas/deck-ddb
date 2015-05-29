@@ -69,8 +69,6 @@
   <li>LevelDB (basic key/value format like sqlite)</li>
   </ul>
 </li>
-</ul>
-<ul>
 <li>Data model<ul>
   <li>The primary key uniquely identifies a row</li>
   <li>Partition key/Clustering columns/Values</li>
@@ -83,7 +81,9 @@
 
     <section class="slide">
       <h2>Withings Use Cases</h2>
-      <h2 class="slide">Vasistas, measure env., timeline: Cassandra (was in PostgreSQL)</h2>
+      <ul>
+        <li class="slide">
+        <h3>Vasistas, measure env., timeline: Cassandra (was in PostgreSQL)</h3>
         <ul>
           <li>support for range queries (e.g. select * from vasistas where ts>4 and ts<10)</li>
           <li>“linearly” scalable</li>
@@ -94,16 +94,20 @@
           <li>(idealy) support for TTLs</li>
           <li>(idealy) have a nice query api</li>
         </ul>
-        </li>
-      <h2 class="slide">Profile Picture: Riak (was GlusterFS)</h2>
+      </li>
+      
+      <li class="slide">
+        <h3>Profile Picture: Riak (was GlusterFS)</h3>
         <ul>
           <li>binary blobs</li>
           <li>key/value</li>
           <li>available (ok to shutdown one node)</li>
           <li>good durability</li>
         </ul>
-        </li>
-      <h2 class="slide">Redis Cluster</h2>
+      </li>
+
+      <li class="slide">
+        <h3>Redis Cluster</h3>
         <ul>
           <li>highly available (ok to shutdown one node)</li>
           <li>strongly consistent</li>
@@ -112,7 +116,7 @@
           <li>no need for (high) durability</li>
           <li>fast (very high throughput)</li>
         </ul>
-        </li>
+      </li>
       </ul>
     </section>
 
@@ -142,9 +146,9 @@
         <li>SSTable flush</li>
         <li>Compactions
           <ul>
-            <li>STCS</li>
-            <li>DTCS</li>
-            <li>LCS</li>
+            <li>STCS: SizeTieredCompactionStrategy</li>
+            <li>DTCS: DateTieredCompactionStrategy</li>
+            <li>LCS: LeveledCompactionStrategy</li>
           </ul>
         </li>
       </ul>
@@ -152,14 +156,31 @@
 
     <section class="slide">
       <h2>Cassandra Schema</h2>
-      <h3 class="slide">CREATE KEYSPACE</h3>
-      <h3 class="slide">CREATE TABLE</h3>
+      <h3>CREATE KEYSPACE</h3>
+<pre>
+CREATE KEYSPACE measure WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'}  AND durable_writes = true;
+</pre>
+      <h3>CREATE TABLE</h3>
+      <pre>
+CREATE TABLE measure.measure_12_ng (
+    deviceid int,
+    ts bigint,
+    vs map<int, int>,
+    PRIMARY KEY (deviceid, ts)
+) WITH CLUSTERING ORDER BY (ts ASC)
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND compaction = {'min_threshold': '6', 'max_threshold': '32', 'max_sstable_age_days': '15', 'class': 'org.apache.cassandra.db.compaction.DateTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.DeflateCompressor'}
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 43200
+    AND memtable_flush_period_in_ms = 0
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99.0PERCENTILE';
+</pre>
       <ul>
-        <li>Data model</li>
-        
         <li>Directory structure:
 <pre>
-# ll /var/lib/cassandra/data/<keyspace>/<table>-<table_hash>/
+# ll /var/lib/cassandra/data/keyspace/table-table_hash/
 total 198052
 drwxr-xr-x  2 cassandra cassandra     12288 May 29 14:51 ./
 drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
@@ -178,14 +199,29 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
 
     <section class="slide">
       <h2>Cassandra Getting Data</h2>
-      <h3 class="slide">SELECT...</h3>
-      <h3 class="slide"></h3>
+      <h3>SELECT * FROM measure_12 WHERE ts > 1432915925;</h3>
+      <ul>
+		<li class="slide">
+		<h3 style="color:red;">Nope: "Cannot execute this query as it might involve data filtering and thus may have unpredictable performance"</h3>
+        <h3>SELECT * FROM measure_12 WHERE deviceid = 54545 AND value < 45;</h3>
+        </li>
+        <li class="slide">
+        <h3 style="color:red;">Nope: "No secondary indexes on the restricted columns support the provided operators"</h3>
+        <h3>SELECT * FROM measure_12 WHERE deviceid = 54545 AND ts > 1432915925;</h3>
+        </li>
+        <li class="slide">
+		<pre>
+ deviceid | ts         | exponent | value
+----------+------------+----------+-------
+    54545 | 1432915926 | -1       | 154
+        </pre>
+        </li>
+      </ul>
     </section>
 
     <section class="slide">
       <h2>Riak</h2>
       <ul>
-        <li></li>
         <li>Context
           <ul>
             <li>Used in HQ for more than 1 year for traces (High volumetry)</li>
@@ -213,11 +249,10 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
             <li>Same ‘ring’ approach than riak and cassandra but sharding with explicit master/slave:</li>
           </ul>
         </li>
-        <li>
+        <li>Operations
           <ul>
-            <li></li>
-            <li></li>
-            <li></li>
+            <li>All of redis metrics available (normal instances)</li>
+            <li>C powa !</li>
           </ul>
         </li>
       <ul>
