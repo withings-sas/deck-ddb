@@ -53,31 +53,174 @@
 
     <section class="slide">
       <h2>Dynamo</h2>
+      <h3>R + W > N</h3>
+      <h3>https://aphyr.com/</h3>
     </section>
 
     <section class="slide">
       <h2>Bigtable</h2>
+      <h3>log-structured and ordered storage</h3>
+<ul>
+<li>Implementations<ul>
+  <li>Apache Accumulo (built on top of Hadoop, ZooKeeper, and Thrift, Java)</li>
+  <li>Apache Cassandra</li>
+  <li>Apache HBase (BigTable-like support on the Hadoop Core, Java)</li>
+  <li>Hypertable (designed to manage the storage and processing of information on a large cluster of commodity servers, C++)</li>
+  <li>LevelDB (basic key/value format like sqlite)</li>
+  </ul>
+</li>
+</ul>
+<ul>
+<li>Data model<ul>
+  <li>The primary key uniquely identifies a row</li>
+  <li>Partition key/Clustering columns/Values</li>
+  <li>The partition key determines on which node the partition resides</li>
+  <li>Data is ordered in cluster column order within the partition</li>
+  </ul>
+</li>
+</ul>
     </section>
 
     <section class="slide">
       <h2>Withings Use Cases</h2>
-      <ul>
-        <li>Cassandra</li>
-        <li>Riak</li>
-        <li>Redis Cluster</li>
+      <h2 class="slide">Vasistas, measure env., timeline: Cassandra (was in PostgreSQL)</h2>
+        <ul>
+          <li>support for range queries (e.g. select * from vasistas where ts>4 and ts<10)</li>
+          <li>“linearly” scalable</li>
+          <li>schema structured data (with validations)</li>
+          <li>available (ok to shutdown one node)</li>
+          <li>good support for timeseries</li>
+          <li>good durability</li>
+          <li>(idealy) support for TTLs</li>
+          <li>(idealy) have a nice query api</li>
+        </ul>
+        </li>
+      <h2 class="slide">Profile Picture: Riak (was GlusterFS)</h2>
+        <ul>
+          <li>binary blobs</li>
+          <li>key/value</li>
+          <li>available (ok to shutdown one node)</li>
+          <li>good durability</li>
+        </ul>
+        </li>
+      <h2 class="slide">Redis Cluster</h2>
+        <ul>
+          <li>highly available (ok to shutdown one node)</li>
+          <li>strongly consistent</li>
+          <li>ttl per key</li>
+          <li>light</li>
+          <li>no need for (high) durability</li>
+          <li>fast (very high throughput)</li>
+        </ul>
+        </li>
       </ul>
     </section>
 
     <section class="slide">
-      <h2>Riak</h2>
+      <h2>Cassandra</h2>
+      <ul>
+        <li>Context
+          <ul>
+            <li>Used in production since december 2014 for measures (temp, co2, ...) and timeline, more recently vasistas</li>
+          </ul>
+        </li>
+        <li>Operations
+          <ul>
+            <li>Java is a pita (when you don’t have a lot of xp): oom, gc</li>
+            <li>Compactions are tricky to get right</li>
+            <li>Storage overhead (globally, and especially per cell)</li>
+            <li>No out of the box easily parsable (JSON) metrics without java</li>
+          </ul>
+        </li>
+      <ul>
     </section>
 
     <section class="slide">
-      <h2>Cassandra</h2>
+      <h2>Cassandra Write Path</h2>
+      <ul>
+        <li>Memtable + Commitlog</li>
+        <li>SSTable flush</li>
+        <li>Compactions
+          <ul>
+            <li>STCS</li>
+            <li>DTCS</li>
+            <li>LCS</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Cassandra Schema</h2>
+      <h3 class="slide">CREATE KEYSPACE</h3>
+      <h3 class="slide">CREATE TABLE</h3>
+      <ul>
+        <li>Data model</li>
+        
+        <li>Directory structure:
+<pre>
+# ll /var/lib/cassandra/data/<keyspace>/<table>-<table_hash>/
+total 198052
+drwxr-xr-x  2 cassandra cassandra     12288 May 29 14:51 ./
+drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
+-rw-r--r--  1 cassandra cassandra      5383 May 28 16:53 measure-measure_12_ng-ka-17-CompressionInfo.db
+-rw-r--r--  1 cassandra cassandra   7886444 May 28 16:53 measure-measure_12_ng-ka-17-Data.db
+-rw-r--r--  1 cassandra cassandra        10 May 28 16:53 measure-measure_12_ng-ka-17-Digest.sha1
+-rw-r--r--  1 cassandra cassandra     51112 May 28 16:53 measure-measure_12_ng-ka-17-Filter.db
+-rw-r--r--  1 cassandra cassandra    735822 May 28 16:53 measure-measure_12_ng-ka-17-Index.db
+-rw-r--r--  1 cassandra cassandra     11515 May 28 16:53 measure-measure_12_ng-ka-17-Statistics.db
+-rw-r--r--  1 cassandra cassandra      5184 May 28 16:53 measure-measure_12_ng-ka-17-Summary.db
+-rw-r--r--  1 cassandra cassandra        91 May 28 16:53 measure-measure_12_ng-ka-17-TOC.txt
+</pre>
+        </li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Cassandra Getting Data</h2>
+      <h3 class="slide">SELECT...</h3>
+      <h3 class="slide"></h3>
+    </section>
+
+    <section class="slide">
+      <h2>Riak</h2>
+      <ul>
+        <li></li>
+        <li>Context
+          <ul>
+            <li>Used in HQ for more than 1 year for traces (High volumetry)</li>
+            <li>Now used in production for P4 for just 1 month</li>
+          </ul>
+        </li>
+        <li>Operations
+          <ul>
+            <li>Erlang (but much better than ejabberd)</li>
+            <li>Lots of metrics out of the box</li>
+            <li>Not as straightforward as a file system operationally and in case of failure</li>
+          </ul>
+        </li>
+      <ul>
     </section>
 
     <section class="slide">
       <h2>Redis Cluster</h2>
+      <ul>
+        <li>Relatively new to the stack</li>
+        <li>Characteristics
+          <ul>
+            <li>Data access through text protocol</li>
+            <li>In-memory (standard redis instances)</li>
+            <li>Same ‘ring’ approach than riak and cassandra but sharding with explicit master/slave:</li>
+          </ul>
+        </li>
+        <li>
+          <ul>
+            <li></li>
+            <li></li>
+            <li></li>
+          </ul>
+        </li>
+      <ul>
     </section>
 
     <!-- End slides. -->
