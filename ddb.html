@@ -74,7 +74,8 @@
 
     <section class="slide">
       <h2>CAP Principle</h2>
-      <h2>Paxos / Raft</h2>
+      <img src="img/cap.png" />
+      <h3>Paxos / Raft</h3>
       <ul>
         <li>Consensus algorythm</li>
         <li>Not used for each queries, just cluster state in Cassandra</li>
@@ -96,26 +97,35 @@
     <section class="slide">
       <h2>Dynamo</h2>
       <table>
-        <tr>
+        <tr style="border:1px solid gray;">
           <td>Partitioning/Sharding</td><td>Consistent Hashing</td>
         </tr>
-        <tr>
+        <tr style="border:1px solid gray;">
           <td>Highly available writes</td><td>Vector Clock or last write wins policy</td>
         </tr>
-        <tr>
+        <tr style="border:1px solid gray;">
           <td>Temporary failures</td><td>Hinted Handoff</td>
         </tr>
-        <tr>
+        <tr style="border:1px solid gray;">
           <td>Recovery from failures</td><td>Anti-entropy using Merkle tree</td>
         </tr>
-        <tr>
+        <tr style="border:1px solid gray;">
           <td>Cluster membership, failure detection</td><td>Gossip Protocol</td>
         </tr>
       </table>
+      <br>
       <ul>
-        <li>Cassandra and Riak uses all of these techniques (only last write wins for Cassandra).</li>
-        <li>Redis Cluster only Consistent Hashing.</li>
+        <li>Cassandra and Riak use all of these techniques (only last write wins for Cassandra).</li>
+        <li>Redis Cluster only uses Consistent Hashing.</li>
       </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Consistent Hashing</h2>
+      <table>
+        <tr><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
+        <tr><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
+      </table>
     </section>
 
     <section class="slide">
@@ -213,6 +223,7 @@
             <li>LCS: LeveledCompactionStrategy</li>
           </ul>
         </li>
+        <li>Log-like structures are easier to work with: no tombstone</li>
       </ul>
     </section>
 
@@ -302,6 +313,7 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
 
     <section class="slide">
       <h2>Redis Cluster</h2>
+      <img src="img/redis-cluster.png" />
       <ul>
         <li>Relatively new to the stack</li>
         <li>Characteristics
@@ -330,6 +342,15 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
       <ul>
         <li>Google Spanner: No real open source implementations (CockroachDB).</li>
         <li>Cassandra 2.2/3.0: Aggregates ?</li>
+      </ul>
+      <h2>Refs</h2>
+      <ul>
+        <li>http://lists.basho.com/pipermail/riak-users_lists.basho.com/2012-January/007157.html</li>
+        <li>http://jimdowney.net/2012/03/05/be-careful-with-sloppy-quorums/</li>
+        <li>http://en.wikipedia.org/wiki/CAP_theorem</li>
+        <li>http://nosql-database.org/</li>
+        <li>https://redeyemon.wordpress.com/2010/10/08/cap-theory-should-have-been-pac-theory/</li>
+        <li>http://fr.slideshare.net/YoavFrancis/cap-theorem-theory-implications-and-practices</li>
       </ul>
     </section>
 
