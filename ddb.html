@@ -60,11 +60,12 @@
           </ul>
         </li>
         <li>Distributed DBs: CAP (Eric Brewer in 2000)
-          <ul>
+          <img src="img/cap.png" style="float:right;" />
+          <ul style="float:left;">
             <li>Consistency: All nodes always give the same answer.</li>
             <li>Availability: Nodes always answer queries and accept updates.</li>
             <li>Parition-tolerance: System continues working even if one or more nodes vanish.</li>
-            <li><h4>=> C != C !</h4></li>
+            <li><h4>=> C != C</h4></li>
             <li><h4>=> P is not really avoidable, and you can only have two of these</h4></li>
             <li><h4>=> All about tradeoff between C and A</h4></li>
           </ul>
@@ -73,15 +74,19 @@
     </section>
 
     <section class="slide">
-      <h2>CAP Principle</h2>
-      <img src="img/cap.png" />
-      <h3>Paxos / Raft</h3>
+      <h2>CAP Principle / Eventual Consistency</h2>
+      <h3>NRW notation</h3>
       <ul>
-        <li>Consensus algorythm</li>
-        <li>Not used for each queries, just cluster state in Cassandra</li>
+        <li>N = the number of nodes that keep copies of a record distributed to.</li>
+        <li>W = the number of nodes that must successfully acknowledge a write to be successfully committed.</li>
+        <li>R = the number of nodes that must send back the same value of a unit of data for it to be accepted as read by the system.</li>
       </ul>
-      <h3>R + W > N</h3>
-      <h3>https://aphyr.com/</h3>
+      <ul>
+        <li>W < N - high write availability
+        <li>R < N - high read availability
+        <li>W+R > N - is a strong consistency, read/write are fully overlapped
+        <li>W+R <= N - is an eventual consistency, meaning that there is no overlap in the read and write set;
+      </ul>
     </section>
 
     <section class="slide">
@@ -95,8 +100,20 @@
     </section>
 
     <section class="slide">
+      <h2>Cluster coordination</h2>
+      <h3>Paxos / Raft</h3>
+      <ul>
+        <li>Consensus algorythm</li>
+        <li>Not used for each queries, just cluster state in Cassandra</li>
+      </ul>
+    </section>
+
+    <section class="slide">
       <h2>Dynamo</h2>
       <table>
+        <tr style="border:1px solid gray;">
+          <th>Problem</th><th>Answer</th>
+        </tr>
         <tr style="border:1px solid gray;">
           <td>Partitioning/Sharding</td><td>Consistent Hashing</td>
         </tr>
@@ -123,8 +140,8 @@
     <section class="slide">
       <h2>Consistent Hashing</h2>
       <table>
-        <tr><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
-        <tr><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
+        <tr class="slide"><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
+        <tr class="slide"><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
       </table>
     </section>
 
@@ -195,17 +212,16 @@
     <section class="slide">
       <h2>Cassandra</h2>
       <ul>
-        <li>Context
+        <li>Used in production since december 2014 for:
           <ul>
-            <li>Used in production since december 2014 for measures (temp, co2, ...) and timeline, more recently vasistas</li>
+            <li>measures (temp, co2, ...) - was in PostgreSQL</li>
+            <li>timeline (users, device, CVR, timelapse) - was in Redis, and new</li>
+            <li>campaign (yearreview) - new</li>
           </ul>
         </li>
-        <li>Operations
+        <li>More recently, and partially, for:
           <ul>
-            <li>Java is a pita (when you don’t have a lot of xp): oom, gc</li>
-            <li>Compactions are tricky to get right</li>
-            <li>Storage overhead (globally, and especially per cell)</li>
-            <li>No out of the box easily parsable (JSON) metrics without java</li>
+            <li>vasistas - was in PostgreSQL</li>
           </ul>
         </li>
       <ul>
@@ -225,53 +241,57 @@
         </li>
         <li>Log-like structures are easier to work with: no tombstone</li>
       </ul>
+      <img src="img/cas-write-path.png" style="background-color:white;" />
     </section>
 
     <section class="slide">
-      <h2>Cassandra Schema</h2>
+      <h2>Cassandra Data Model</h2>
       <h3>CREATE KEYSPACE</h3>
 <pre>
-CREATE KEYSPACE measure WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'}  AND durable_writes = true;
-</pre>
-      <h3>CREATE TABLE</h3>
-      <pre>
+CREATE KEYSPACE measure
+  WITH replication = {
+	'class': 'SimpleStrategy',
+	'replication_factor': '2'
+  } AND durable_writes = true;</pre>
+      <ul>
+        <li>SimpleStrategy: No datacenter replication</li>
+        <li>replication_factor: How many times data is replicated</li>
+        <li>durable_writes: Use commitlog</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Cassandra Data Model Fail</h2>
+      <h4>Data model for measures was</h4>
+      <pre style="font-size:60%;">
+CREATE TABLE measure.measure_12 (
+    deviceid int,
+    ts bigint,
+    exp int,
+    value int,
+    PRIMARY KEY (deviceid, ts)
+) WITH CLUSTERING ORDER BY (ts ASC)
+    AND compaction = {'class': 'SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'LZ4Compressor'};</pre>
+      <ul>
+        <li>Migration to DTCS (on the fly, but not perfect, see #8340)</li>
+        <li>Change of compression level (on the fly)</li>
+        <li>And finally, slight rework of the data model:</li>
+      </ul>
+      <pre style="font-size:60%;">
 CREATE TABLE measure.measure_12_ng (
     deviceid int,
     ts bigint,
     vs map<int, int>,
     PRIMARY KEY (deviceid, ts)
 ) WITH CLUSTERING ORDER BY (ts ASC)
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND compaction = {'min_threshold': '6', 'max_threshold': '32', 'max_sstable_age_days': '15', 'class': 'org.apache.cassandra.db.compaction.DateTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.DeflateCompressor'}
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 43200
-    AND memtable_flush_period_in_ms = 0
-    AND read_repair_chance = 0.1
-    AND speculative_retry = '99.0PERCENTILE';
-</pre>
-      <ul>
-        <li>Directory structure:
-<pre>
-# ll /var/lib/cassandra/data/keyspace/table-table_hash/
-total 198052
-drwxr-xr-x  2 cassandra cassandra     12288 May 29 14:51 ./
-drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
--rw-r--r--  1 cassandra cassandra      5383 May 28 16:53 measure-measure_12_ng-ka-17-CompressionInfo.db
--rw-r--r--  1 cassandra cassandra   7886444 May 28 16:53 measure-measure_12_ng-ka-17-Data.db
--rw-r--r--  1 cassandra cassandra        10 May 28 16:53 measure-measure_12_ng-ka-17-Digest.sha1
--rw-r--r--  1 cassandra cassandra     51112 May 28 16:53 measure-measure_12_ng-ka-17-Filter.db
--rw-r--r--  1 cassandra cassandra    735822 May 28 16:53 measure-measure_12_ng-ka-17-Index.db
--rw-r--r--  1 cassandra cassandra     11515 May 28 16:53 measure-measure_12_ng-ka-17-Statistics.db
--rw-r--r--  1 cassandra cassandra      5184 May 28 16:53 measure-measure_12_ng-ka-17-Summary.db
--rw-r--r--  1 cassandra cassandra        91 May 28 16:53 measure-measure_12_ng-ka-17-TOC.txt
-</pre>
-        </li>
-      </ul>
+    AND compaction = {'max_sstable_age_days': '15', 'class': 'DateTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'DeflateCompressor'};</pre>
+      <h4>=> Inspired by issue on vasistas</h4>
     </section>
 
     <section class="slide">
-      <h2>Cassandra Getting Data</h2>
+      <h2>Cassandra Data Model - Queries</h2>
       <h3>SELECT * FROM measure_12 WHERE ts > 1432915925;</h3>
       <ul>
 		<li class="slide">
@@ -288,6 +308,27 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
 ----------+------------+----------+-------
     54545 | 1432915926 | -1       | 154
         </pre>
+        </li>
+      </ul>
+      <h3>Spark should help for data analysis but require lots of servers and RAM</h3>
+    </section>
+
+    <section class="slide">
+      <h2>Cassandra after 6 months</h2>
+      <ul>
+        <li>Good points
+          <ul>
+            <li>Shutdown of one node without downtime</li>
+            <li>TTLs + DTCS great until now</li>
+          </ul>
+        </li>
+        <li>Caveats
+          <ul>
+            <li>Java is a pita (when you don’t have a lot of xp): oom, gc</li>
+            <li>Compactions are tricky to get right</li>
+            <li>Storage overhead (globally, and especially per cell)</li>
+            <li>No out of the box easily parsable (JSON) metrics without java</li>
+          </ul>
         </li>
       </ul>
     </section>
@@ -352,6 +393,7 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
         <li>http://nosql-database.org/</li>
         <li>https://redeyemon.wordpress.com/2010/10/08/cap-theory-should-have-been-pac-theory/</li>
         <li>http://fr.slideshare.net/YoavFrancis/cap-theorem-theory-implications-and-practices</li>
+        <li>https://aphyr.com/</li>
       </ul>
     </section>
 
