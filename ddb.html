@@ -127,12 +127,14 @@
       <ul>
         <li>Paxos (kinda) in Cassandra</li>
         <li>Only called for some queries with strong consistency requirements (IF NOT EXISTS)</li>
+        <li>TODO: example</li>
         <li>Lots of new DBs uses the (simpler) Raft protocol</li>
       </ul>
     </section>
 
     <section class="slide">
       <h2>Dynamo</h2>
+      <h3>Complementary approach to Paxos/Raft</h3>
       <table width="100%">
         <tr style="border:1px solid gray;">
           <th>Problem</th><th>Answer</th>
@@ -188,7 +190,7 @@
         <li>Fixed network usage</li>
         <li>Used in Cassandra and Riak
         <ul>
-          <li></li>
+          <li>TODO: add image</li>
         </li>
       </ul>
     </section>
@@ -210,6 +212,7 @@
   <li>Partition key/Clustering columns/Values</li>
   <li>The partition key determines on which node the partition resides</li>
   <li>Data is ordered in cluster column order within the partition</li>
+<li>TODO: add image</li>
   </ul>
 </li>
 </ul>
@@ -330,12 +333,12 @@ CREATE TABLE measure.measure_12 (
 CREATE TABLE measure.measure_12_ng (
     deviceid int,
     ts bigint,
-    vs map<int, int>,
+    vs map&lt;int, int&gt;,
     PRIMARY KEY (deviceid, ts)
 ) WITH CLUSTERING ORDER BY (ts ASC)
     AND compaction = {'max_sstable_age_days': '15', 'class': 'DateTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'DeflateCompressor'};</pre>
-      <h4>=> Inspired by issue on vasistas</h4>
+      <h4>=> Inspired by similar issue on vasistas</h4>
     </section>
 
     <section class="slide">
@@ -356,9 +359,9 @@ CREATE TABLE measure.measure_12_ng (
 ----------+------------+----------+-------
     54545 | 1432915926 | -1       | 154
         </pre>
+         <h3>Spark should help for data analysis but require lots of servers and RAM</h3>
         </li>
       </ul>
-      <h3>Spark should help for data analysis but require lots of servers and RAM</h3>
     </section>
 
     <section class="slide">
@@ -368,6 +371,8 @@ CREATE TABLE measure.measure_12_ng (
           <ul>
             <li>Shutdown of one node without downtime</li>
             <li>TTLs + DTCS great until now</li>
+            <li>High write throughput</li>
+            <li>Mistakes (data model, compactions) occured but solutions were found</li>
           </ul>
         </li>
         <li>Caveats
@@ -388,6 +393,12 @@ CREATE TABLE measure.measure_12_ng (
           <ul>
             <li>Used in HQ for more than 1 year for traces (High volumetry)</li>
             <li>Now used in production for P4 for just 1 month</li>
+          </ul>
+        </li>
+        <li>Good points
+          <ul>
+            <li>Very stable and fast for traces</li>
+            <li>Architecture seems well thought, defined</li>
           </ul>
         </li>
         <li>Operations
@@ -428,7 +439,7 @@ CREATE TABLE measure.measure_12_ng (
       <h2>Others</h2>
       <ul>
         <li>Elasticsearch: Used in next gen traces ws.</li>
-        <li>MySQL Cluster: Mature, interesting approach.</li>
+        <li>MySQL Cluster: Seems mature and robust and fast: to investigate ?</li>
       </ul>
       <h2>Future</h2>
       <ul>
@@ -436,7 +447,7 @@ CREATE TABLE measure.measure_12_ng (
         <li>Cassandra 2.2/3.0: Aggregates ?</li>
       </ul>
       <h2>Refs</h2>
-      <ul>
+      <ul style="font-size:70%;">
         <li>Theory and practical DB analysis: https://aphyr.com/</li>
         <li>List of NoSQL DBs: http://nosql-database.org/</li>
         <li>Sloppy Quorums/Riak: http://lists.basho.com/pipermail/riak-users_lists.basho.com/2012-January/007157.html</li>
@@ -450,10 +461,7 @@ CREATE TABLE measure.measure_12_ng (
         <li>Spanner paper: https://www.usenix.org/system/files/conference/osdi12/osdi12-final-16.pdf</li>
       </ul>
     </section>
-
     <!-- End slides. -->
-
-    <!-- Begin extension snippets. Add or remove as needed. -->
 
     <!-- deck.navigation snippet -->
     <div aria-role="navigation">
