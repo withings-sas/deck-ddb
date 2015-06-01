@@ -67,19 +67,22 @@
           </ul>
           <ul>
             <li>In a one-node DB, this is easier, as the state is centralized.</li>
-            <li><h4>=> In a distributed environment, this requires high coordination (locks) to ensure linearizability of state changes</h4></li>
-            <li>=> Same issue at a much smaller scale in multi CPU machines: access to memory must be synchronized</li>
+            <li><h4>=&gt; In a distributed environment, this requires high coordination (locks) to ensure linearizability of state changes</h4></li>
+            <li>=&gt; Same issue at a much smaller scale in multi CPU machines: access to memory must be synchronized</li>
           </ul>
+    </section>
+
+    <section class="slide">
+      <img src="img/linearizability.png" />
     </section>
 
     <section class="slide">
       <h2>CAP Principle (Eric Brewer in 2000)</h2>
           <img src="img/cap.svg" style="float:right;width:40%;background-color:white;" />
           <ul style="float:left;width:50%;">
-            <li><b>Consistency</b>: All nodes always give the same answer.</li>
+            <li><b>Consistency</b>: All nodes always give the same answer. Not the same C in ACID.</li>
             <li><b>Availability</b>: Nodes always answer queries and accept updates.</li>
             <li><b>Parition-tolerance</b>: System continues working even if one or more nodes vanish.</li>
-            <li><h4>=> C != C</h4></li>
             <li><h4>=> P is not really avoidable, and you can only have two of these</h4></li>
             <li><h4>=> All about tradeoff between C and A through more or less asynchrone replication</h4></li>
             <li><h4>=> Also latency tradoff</h4></li>
