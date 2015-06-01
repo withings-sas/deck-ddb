@@ -298,11 +298,11 @@ h1 {
 }
 
 h2 {
-  color: #af0;
+  color: #bbb;
   border-bottom-color: #ccc;
   font-weight: normal;
   font-weight: 100;
-  /*text-shadow: 0 0 15px #af0, 0 0 2px #fff;*/
+  /*text-shadow: 0px 0px 1px #DDD;*/
   border-bottom: 1px solid #333;
 }
 

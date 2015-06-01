@@ -5,72 +5,104 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=1024, user-scalable=no">
 
-  <title>Your deck.js Presentation</title>
+  <title>Distributed Databases</title>
 
-  <!-- Required stylesheet -->
   <link rel="stylesheet" media="screen" href="core/deck.core.css">
-
-  <!-- Extension CSS files go here. Remove or add as needed. -->
   <link rel="stylesheet" media="screen" href="extensions/goto/deck.goto.css">
   <link rel="stylesheet" media="screen" href="extensions/menu/deck.menu.css">
   <link rel="stylesheet" media="screen" href="extensions/navigation/deck.navigation.css">
   <link rel="stylesheet" media="screen" href="extensions/status/deck.status.css">
   <link rel="stylesheet" media="screen" href="extensions/scale/deck.scale.css">
-
-  <!-- Style theme. More available in /themes/style/ or create your own. -->
   <link rel="stylesheet" media="screen" href="themes/style/black.css">
-
-  <!-- Transition theme. More available in /themes/transition/ or create your own. -->
   <link rel="stylesheet" media="screen" href="themes/transition/horizontal-slide.css">
-
-  <!-- Basic black and white print styles -->
   <link rel="stylesheet" media="print" href="core/print.css">
-
-  <!-- Required Modernizr file -->
   <script src="modernizr.custom.js"></script>
 </head>
 <body>
   <div class="deck-container">
-
-    <!-- Begin slides. Just make elements with a class of slide. -->
 
     <section class="slide">
       <h1>Distributed Databases</h1>
     </section>
 
     <section class="slide">
-      <h2>Theory</h2>
+      <h2>Why Go Distributed ?</h2>
       <ul>
-        <li>ACID & CAP</li>
+        <li>Scale out</li>
+        <li>Uptime</li>
+      </ul>
+      <h3>Our problems</h3>
+      <ul>
+        <li>servers die</li>
+        <li>network is unreliable
+        <ul>
+         <li>Packet drop</li>
+         <li>High latency</li>
+         <li>Complete failure</li>
+        </ul>
+       </li>
+      </ul>
+      <img src="img/system-of-3.png" />
+      <h3>=> Dreaded "split-brain" scenario in which a system splits and diverges</h3>
+    </section>
+
+    <section class="slide">
+      <h2>Some Theory</h2>
+      <ul>
+        <li>ACID</li>
+        <li>CAP</li>
+        <li>Consensus Protocol</li>
         <li>Dynamo</li>
         <li>Bigtable</li>
       </ul>
     </section>
 
     <section class="slide">
-      <h2>CAP Principle</h2>
-      <ul>
-        <li>Traditionnal RDBMS: ACID
+      <h2>Traditional RDBMS: ACID</h2>
           <ul>
             <li>Atomicity: "All of nothing", if part fails, the entire transaction fails.</li>
             <li>Consistency: Follow databases rules (key, uniqueness).</li>
             <li>Isolation: Transactions will wait if at the same time and touching the same data.</li>
             <li>Durability: Once a transaction is commited, it stays so.</li>
-            <li><h4>=> Require high coordination in a distributed environment</h4></li>
           </ul>
-        </li>
-        <li>Distributed DBs: CAP (Eric Brewer in 2000)
-          <img src="img/cap.png" style="float:right;" />
-          <ul style="float:left;">
-            <li>Consistency: All nodes always give the same answer.</li>
-            <li>Availability: Nodes always answer queries and accept updates.</li>
-            <li>Parition-tolerance: System continues working even if one or more nodes vanish.</li>
+          <ul>
+            <li>In a one-node DB, this is easier, as the state is centralized.</li>
+            <li><h4>=> In a distributed environment, this requires high coordination (locks) to ensure linearizability of state changes</h4></li>
+            <li>=> Same issue at a much smaller scale in multi CPU machines: access to memory must be synchronized</li>
+          </ul>
+    </section>
+
+    <section class="slide">
+      <h2>CAP Principle (Eric Brewer in 2000)</h2>
+          <img src="img/cap.svg" style="float:right;width:40%;background-color:white;" />
+          <ul style="float:left;width:50%;">
+            <li><b>Consistency</b>: All nodes always give the same answer.</li>
+            <li><b>Availability</b>: Nodes always answer queries and accept updates.</li>
+            <li><b>Parition-tolerance</b>: System continues working even if one or more nodes vanish.</li>
             <li><h4>=> C != C</h4></li>
             <li><h4>=> P is not really avoidable, and you can only have two of these</h4></li>
             <li><h4>=> All about tradeoff between C and A</h4></li>
+            <li><h4>=> Also latency tradoff</h4></li>
           </ul>
-        </li>
+    </section>
+
+    <section class="slide">
+      <h2>Consistency ?</h2>
+      <img src="img/consistency-family-tree.jpg" style="float:right;width:40%;" />
+      <ul style="float:left;width:50%;">
+        <li>Linearizability</li>
+        <li>Sequential consistency</li>
+        <li>Causal consistency</li>
+        <li>Serializable consistency</li>
+        <li>...</li>
       </ul>
+      <h2>CRDTs ?</h2>
+      <ul>
+        <li>CRDTs: Commutative Replicated Data Types</li>
+        <li>=> Datatypes designed so that the order of operations does not matter</li>
+        <li>e.g.: increment(account, -100)</li>
+      </ul>
+      <p>Read more at https://aphyr.com/posts/313-strong-consistency-models</p>
     </section>
 
     <section class="slide">
@@ -82,20 +114,10 @@
         <li>R = the number of nodes that must send back the same value of a unit of data for it to be accepted as read by the system.</li>
       </ul>
       <ul>
-        <li>W < N - high write availability
-        <li>R < N - high read availability
-        <li>W+R > N - is a strong consistency, read/write are fully overlapped
-        <li>W+R <= N - is an eventual consistency, meaning that there is no overlap in the read and write set;
-      </ul>
-    </section>
-
-    <section class="slide">
-      <h2>CRDTs</h2>
-      <ul>
-        <li>Issue in ev. cons. systems is ordering</li>
-        <li>CRDTs: Commutative Replicated Data Types</li>
-        <li>=> Datatypes designed so that the order of operations does not matter</li>
-        <li>e.g.: increment(account, -100)</li>
+        <li>W &gt; N - high write availability</li>
+        <li>R &gt; N - high read availability</li>
+        <li>W+R &lt; N - is a strong consistency, read/write are fully overlapped</li>
+        <li>W+R &lt;= N - is an eventual consistency, meaning that there is no overlap in the read and write set;</li>
       </ul>
     </section>
 
@@ -105,6 +127,7 @@
       <ul>
         <li>Paxos (kinda) in Cassandra</li>
         <li>Only called for some queries with strong consistency requirements (IF NOT EXISTS)</li>
+        <li>Lots of new DBs uses the (simpler) Raft protocol</li>
       </ul>
     </section>
 
@@ -121,7 +144,7 @@
           <td>Highly available writes</td><td>Vector Clock or last write wins policy</td>
         </tr>
         <tr style="border:1px solid gray;">
-          <td>Temporary failures</td><td>Hinted Handoff</td>
+          <td>Temporary failures</td><td>Sloppy Quorum and Hinted Handoff</td>
         </tr>
         <tr style="border:1px solid gray;">
           <td>Recovery from failures</td><td>Anti-entropy using Merkle tree</td>
@@ -138,7 +161,7 @@
     </section>
 
     <section class="slide">
-      <h2>Consistent Hashing</h2>
+      <h2>Dynamo - Consistent Hashing</h2>
       <table>
         <tr class="slide"><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
         <tr class="slide"><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
@@ -146,7 +169,7 @@
     </section>
 
     <section class="slide">
-      <h2>Merkle tree</h2>
+      <h2>Dynamo - Merkle tree</h2>
       <ul>
         <li>hash tree</li>
         <li>used to detect changes in huge datasets</li>
@@ -159,7 +182,7 @@
     </section>
 
     <section class="slide">
-      <h2>Gossip Protocol</h2>
+      <h2>Dynamo - Gossip Protocol</h2>
       <ul>
         <li>Decentralized way to manage cluster state</li>
         <li>Fixed network usage</li>
@@ -387,11 +410,14 @@ CREATE TABLE measure.measure_12_ng (
             <li>Data access through text protocol</li>
             <li>In-memory (standard redis instances)</li>
             <li>Same ‘ring’ approach than riak and cassandra but sharding with explicit master/slave:</li>
+            <li>Standard redis replication and persistence</li>
+            <li>Not for high volumetry</li>
           </ul>
         </li>
         <li>Operations
           <ul>
             <li>All of redis metrics available (normal instances)</li>
+            <li>Reliable (at least for base redis tech, redis-cluster 3.0.0 just out)</li>
             <li>C powa !</li>
           </ul>
         </li>
@@ -406,19 +432,22 @@ CREATE TABLE measure.measure_12_ng (
       </ul>
       <h2>Future</h2>
       <ul>
-        <li>Google Spanner: No real open source implementations (CockroachDB).</li>
+        <li>Google Spanner: No real open source implementations (CockroachDB). Seems complex.</li>
         <li>Cassandra 2.2/3.0: Aggregates ?</li>
       </ul>
       <h2>Refs</h2>
       <ul>
-        <li>http://lists.basho.com/pipermail/riak-users_lists.basho.com/2012-January/007157.html</li>
-        <li>http://jimdowney.net/2012/03/05/be-careful-with-sloppy-quorums/</li>
-        <li>http://en.wikipedia.org/wiki/CAP_theorem</li>
-        <li>http://en.wikipedia.org/wiki/Merkle_tree</li>
-        <li>http://nosql-database.org/</li>
-        <li>https://redeyemon.wordpress.com/2010/10/08/cap-theory-should-have-been-pac-theory/</li>
-        <li>http://fr.slideshare.net/YoavFrancis/cap-theorem-theory-implications-and-practices</li>
-        <li>https://aphyr.com/</li>
+        <li>Theory and practical DB analysis: https://aphyr.com/</li>
+        <li>List of NoSQL DBs: http://nosql-database.org/</li>
+        <li>Sloppy Quorums/Riak: http://lists.basho.com/pipermail/riak-users_lists.basho.com/2012-January/007157.html</li>
+        <li>Sloppy Quorums: http://jimdowney.net/2012/03/05/be-careful-with-sloppy-quorums/</li>
+        <li>Merkle/Hash tree: http://en.wikipedia.org/wiki/Merkle_tree</li>
+        <li>CAP: http://en.wikipedia.org/wiki/CAP_theorem</li>
+        <li>CAP/PAC: https://redeyemon.wordpress.com/2010/10/08/cap-theory-should-have-been-pac-theory/</li>
+        <li>CAP: http://fr.slideshare.net/YoavFrancis/cap-theorem-theory-implications-and-practices</li>
+        <li>CAP/ACID: http://berb.github.io/diploma-thesis/community/061_challenge.html</li>
+        <li>CRDTs: http://hal.upmc.fr/file/index/docid/555588/filename/techreport.pdf</li>
+        <li>Spanner paper: https://www.usenix.org/system/files/conference/osdi12/osdi12-final-16.pdf</li>
       </ul>
     </section>
 
