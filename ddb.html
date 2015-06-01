@@ -41,7 +41,7 @@
     <section class="slide">
       <h2>Theory</h2>
       <ul>
-        <li>CAP Principle</li>
+        <li>ACID & CAP</li>
         <li>Dynamo</li>
         <li>Bigtable</li>
       </ul>
@@ -49,12 +49,83 @@
 
     <section class="slide">
       <h2>CAP Principle</h2>
+      <ul>
+        <li>Traditionnal RDBMS: ACID
+          <ul>
+            <li>Atomicity: "All of nothing", if part fails, the entire transaction fails.</li>
+            <li>Consistency: Follow databases rules (key, uniqueness).</li>
+            <li>Isolation: Transactions will wait if at the same time and touching the same data.</li>
+            <li>Durability: Once a transaction is commited, it stays so.</li>
+            <li><h4>=> Require high coordination in a distributed environment</h4></li>
+          </ul>
+        </li>
+        <li>Distributed DBs: CAP (Eric Brewer in 2000)
+          <ul>
+            <li>Consistency: All nodes always give the same answer.</li>
+            <li>Availability: Nodes always answer queries and accept updates.</li>
+            <li>Parition-tolerance: System continues working even if one or more nodes vanish.</li>
+            <li><h4>=> C != C !</h4></li>
+            <li><h4>=> P is not really avoidable, and you can only have two of these</h4></li>
+            <li><h4>=> All about tradeoff between C and A</h4></li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>CAP Principle</h2>
+      <img src="img/cap.png" />
+      <h3>Paxos / Raft</h3>
+      <ul>
+        <li>Consensus algorythm</li>
+        <li>Not used for each queries, just cluster state in Cassandra</li>
+      </ul>
+      <h3>R + W > N</h3>
+      <h3>https://aphyr.com/</h3>
+    </section>
+
+    <section class="slide">
+      <h2>CRDTs</h2>
+      <ul>
+        <li>Issue in ev. cons. systems is ordering</li>
+        <li>CRDTs: Commutative Replicated Data Types</li>
+        <li>=> Datatypes designed so that the order of operations does not matter</li>
+        <li>e.g.: increment(account, -100)</li>
+      </ul>
     </section>
 
     <section class="slide">
       <h2>Dynamo</h2>
-      <h3>R + W > N</h3>
-      <h3>https://aphyr.com/</h3>
+      <table>
+        <tr style="border:1px solid gray;">
+          <td>Partitioning/Sharding</td><td>Consistent Hashing</td>
+        </tr>
+        <tr style="border:1px solid gray;">
+          <td>Highly available writes</td><td>Vector Clock or last write wins policy</td>
+        </tr>
+        <tr style="border:1px solid gray;">
+          <td>Temporary failures</td><td>Hinted Handoff</td>
+        </tr>
+        <tr style="border:1px solid gray;">
+          <td>Recovery from failures</td><td>Anti-entropy using Merkle tree</td>
+        </tr>
+        <tr style="border:1px solid gray;">
+          <td>Cluster membership, failure detection</td><td>Gossip Protocol</td>
+        </tr>
+      </table>
+      <br>
+      <ul>
+        <li>Cassandra and Riak use all of these techniques (only last write wins for Cassandra).</li>
+        <li>Redis Cluster only uses Consistent Hashing.</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Consistent Hashing</h2>
+      <table>
+        <tr><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
+        <tr><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
+      </table>
     </section>
 
     <section class="slide">
@@ -91,6 +162,7 @@
           <li>available (ok to shutdown one node)</li>
           <li>good support for timeseries</li>
           <li>good durability</li>
+          <li>(nearly) append only</li>
           <li>(idealy) support for TTLs</li>
           <li>(idealy) have a nice query api</li>
         </ul>
@@ -151,6 +223,7 @@
             <li>LCS: LeveledCompactionStrategy</li>
           </ul>
         </li>
+        <li>Log-like structures are easier to work with: no tombstone</li>
       </ul>
     </section>
 
@@ -240,6 +313,7 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
 
     <section class="slide">
       <h2>Redis Cluster</h2>
+      <img src="img/redis-cluster.png" />
       <ul>
         <li>Relatively new to the stack</li>
         <li>Characteristics
@@ -256,6 +330,29 @@ drwxr-xr-x 17 cassandra cassandra      4096 May 21 13:54 ../
           </ul>
         </li>
       <ul>
+    </section>
+
+    <section class="slide">
+      <h2>Others</h2>
+      <ul>
+        <li>Elasticsearch: Used in next gen traces ws.</li>
+        <li>MySQL Cluster: Mature, interesting approach.</li>
+      </ul>
+      <h2>Future</h2>
+      <ul>
+        <li>Google Spanner: No real open source implementations (CockroachDB).</li>
+        <li>Cassandra 2.2/3.0: Aggregates ?</li>
+      </ul>
+      <h2>Refs</h2>
+      <ul>
+        <li>http://lists.basho.com/pipermail/riak-users_lists.basho.com/2012-January/007157.html</li>
+        <li>http://jimdowney.net/2012/03/05/be-careful-with-sloppy-quorums/</li>
+        <li>http://en.wikipedia.org/wiki/CAP_theorem</li>
+        <li>http://en.wikipedia.org/wiki/Merkle_tree</li>
+        <li>http://nosql-database.org/</li>
+        <li>https://redeyemon.wordpress.com/2010/10/08/cap-theory-should-have-been-pac-theory/</li>
+        <li>http://fr.slideshare.net/YoavFrancis/cap-theorem-theory-implications-and-practices</li>
+      </ul>
     </section>
 
     <!-- End slides. -->
