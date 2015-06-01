@@ -100,17 +100,17 @@
     </section>
 
     <section class="slide">
-      <h2>Cluster coordination</h2>
+      <h2>Consensus Protocol</h2>
       <h3>Paxos / Raft</h3>
       <ul>
-        <li>Consensus algorythm</li>
-        <li>Not used for each queries, just cluster state in Cassandra</li>
+        <li>Paxos (kinda) in Cassandra</li>
+        <li>Only called for some queries with strong consistency requirements (IF NOT EXISTS)</li>
       </ul>
     </section>
 
     <section class="slide">
       <h2>Dynamo</h2>
-      <table>
+      <table width="100%">
         <tr style="border:1px solid gray;">
           <th>Problem</th><th>Answer</th>
         </tr>
@@ -143,6 +143,31 @@
         <tr class="slide"><td><img src="img/ring-1.png" /></td><td><img src="img/ring-2.png" /></td></tr>
         <tr class="slide"><td><img src="img/ring-3.png" /></td><td><img src="img/ring-4.png" /></td></tr>
       </table>
+    </section>
+
+    <section class="slide">
+      <h2>Merkle tree</h2>
+      <ul>
+        <li>hash tree</li>
+        <li>used to detect changes in huge datasets</li>
+        <li>still quite costly to build:
+        <ul>
+          <li>Cassandra build and check them when running "nodetool repair"</li>
+          <li>Riak does so automatically in background, and caches them</li>
+        </li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Gossip Protocol</h2>
+      <ul>
+        <li>Decentralized way to manage cluster state</li>
+        <li>Fixed network usage</li>
+        <li>Used in Cassandra and Riak
+        <ul>
+          <li></li>
+        </li>
+      </ul>
     </section>
 
     <section class="slide">
