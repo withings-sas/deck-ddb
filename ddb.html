@@ -31,7 +31,7 @@
         <li>Scale out</li>
         <li>Uptime</li>
       </ul>
-      <h3>Our problems</h3>
+      <h3>Problems</h3>
       <ul>
         <li>servers die</li>
         <li>network is unreliable
@@ -43,7 +43,7 @@
        </li>
       </ul>
       <img src="img/system-of-3.png" />
-      <h3>=> Dreaded "split-brain" scenario in which a system splits and diverges</h3>
+      <h3>=> Dreaded "split-brain" scenario in which a system splits and diverges (and reconciliation is nearly impossible)</h3>
     </section>
 
     <section class="slide">
@@ -61,7 +61,7 @@
       <h2>Traditional RDBMS: ACID</h2>
           <ul>
             <li>Atomicity: "All of nothing", if part fails, the entire transaction fails.</li>
-            <li>Consistency: Follow databases rules (key, uniqueness).</li>
+            <li>Consistency: Follow databases rules (key, uniqueness). Valid state at end of transaction.</li>
             <li>Isolation: Transactions will wait if at the same time and touching the same data.</li>
             <li>Durability: Once a transaction is commited, it stays so.</li>
           </ul>
@@ -78,7 +78,7 @@
 
     <section class="slide">
       <h2>CAP Principle (Eric Brewer in 2000)</h2>
-          <img src="img/cap.svg" style="float:right;width:40%;background-color:white;" />
+          <img src="img/cap.png" style="float:right;width:40%;background-color:white;" />
           <ul style="float:left;width:50%;">
             <li><b>Consistency</b>: All nodes always give the same answer. Not the same C in ACID.</li>
             <li><b>Availability</b>: Nodes always answer queries and accept updates.</li>
@@ -131,8 +131,8 @@
       <ul>
         <li>Paxos (kinda) in Cassandra</li>
         <li>Only called for some queries with strong consistency requirements (IF NOT EXISTS)</li>
-        <li>TODO: example</li>
         <li>Lots of new DBs uses the (simpler) Raft protocol</li>
+        <li><a href="http://thesecretlivesofdata.com/raft/#replication">If we have time</a></li>
       </ul>
     </section>
 
@@ -184,6 +184,7 @@
           <li>Cassandra build and check them when running "nodetool repair"</li>
           <li>Riak does so automatically in background, and caches them</li>
         </li>
+        <li><img src="img/hashtree.svg" /></li>
       </ul>
     </section>
 
@@ -191,11 +192,9 @@
       <h2>Dynamo - Gossip Protocol</h2>
       <ul>
         <li>Decentralized way to manage cluster state</li>
-        <li>Fixed network usage</li>
-        <li>Used in Cassandra and Riak
-        <ul>
-          <li>TODO: add image</li>
-        </li>
+        <li>Fixed network usage (gossiping with a subset of nodes)</li>
+        <li>Used in Cassandra and Riak</li>
+        <li><img src="img/gossip.jpg" /></li>
       </ul>
     </section>
 
@@ -216,8 +215,8 @@
   <li>Partition key/Clustering columns/Values</li>
   <li>The partition key determines on which node the partition resides</li>
   <li>Data is ordered in cluster column order within the partition</li>
-<li>TODO: add image</li>
-  </ul>
+  <!--<li><img src="img/bigtable.png" /></li>-->
+  <li><img src="img/bigtable2.jpg" /></li>
 </li>
 </ul>
     </section>
