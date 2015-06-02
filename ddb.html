@@ -102,8 +102,9 @@
       <h2>CRDTs ?</h2>
       <ul>
         <li>CRDTs: Convergent/Commutative Replicated Data Types</li>
-        <li>=> Datatypes designed so that the order of operations does not matter</li>
-        <li>e.g. counters: increment(account, -100)</li>
+        <li>=&gt; Datatypes/operations designed so that the order of operations does not matter</li>
+        <li>e.g. CmRDT: counters: increment(account, -100)</li>
+        <li>e.g. CvRDT: LWW registers</li>
       </ul>
       <p>Read more at https://aphyr.com/posts/313-strong-consistency-models</p>
     </section>
@@ -117,10 +118,10 @@
         <li>R = the number of nodes that must send back the same value of a unit of data for it to be accepted as read by the system.</li>
       </ul>
       <ul>
-        <li>W &gt; N - high write availability</li>
-        <li>R &gt; N - high read availability</li>
-        <li>W+R &lt; N - is a strong consistency, read/write are fully overlapped</li>
-        <li>W+R &lt;= N - is an eventual consistency, meaning that there is no overlap in the read and write set;</li>
+        <li>W &lt; N : high write availability</li>
+        <li>R &lt; N : high read availability</li>
+        <li>W+R &gt; N : is a strong consistency, read/write are fully overlapped</li>
+        <li>W+R &lt;= N : is an eventual consistency, meaning that there is no overlap in the read and write set;</li>
       </ul>
     </section>
 
@@ -463,6 +464,7 @@ CREATE TABLE measure.measure_12_ng (
         <li>CAP/ACID: http://berb.github.io/diploma-thesis/community/061_challenge.html</li>
         <li>CRDTs: http://hal.upmc.fr/file/index/docid/555588/filename/techreport.pdf</li>
         <li>Spanner paper: https://www.usenix.org/system/files/conference/osdi12/osdi12-final-16.pdf</li>
+        <li>Dynamo paper: http://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf</li>
       </ul>
     </section>
     <!-- End slides. -->
